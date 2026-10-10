@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Game Arcade</title>
+    <style>
+
+        /* Base of the game layout: navy gradient, rounded edges, minimilistic fonts */
+        
+        /* Basic colour scheme: 
+        
+        - The base of the actual game (backgrop): slight gradient using different navies (#0b1a2e --> #1b2f44) 
+        - The card in the middle: darker navy, but slightly transparent (more contrast): rgba(18, 30, 41, 0.9)
+        - Border of the boxes and possibly the buttons: rgba(120, 200, 255, 0.15) 
+        - Dimmed text at the bottom with the keyboard shortcuts: #8aaec0
+        - Body text: #b0d4f0
+        - Text for the h1: #e0f2fe
+        - Secondary elements/accents like the VS symbol?: #7bc9ff (skybluish) */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #0b1a2e 0%, #1b2f44 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            padding: 18px;
+            margin: 0;
+            user-select: none;
+        }
+
+        /* Main display shell */
+
+        .app-shell {
+            max-width: 900px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        /* Navigation bar/tabs */
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            background: rgba(18, 30, 41, 0.9);
+            padding: 8px 10px 8px 8px;
+            border: 1px solid rgba(120, 200, 255, 0.15);
+        }
+
+        .nav-btn {
+            flex: 1; 
+            background: transparent;
+            border: none;
+            color: #8aaec0;
+            padding: 12px;
+            border-radius: 100px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .nav-btn:hover:not(.active) {
+            color: #b0d4f0;
+            background: rgba(120, 200, 255, 0.06);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(135deg, rgba(80, 180, 255, 0.25), rgba(60, 140, 230, 0.18));
+            color: #ffffff;
+        }
+
+        /* Game card */
+
+        .game-card {
+            background: rgba(18, 30, 41, 0.9);
+            border-radius: 45px;
+            padding: 36px 32px 42px 36px;
+            width: 100%;
+            border: 1px solid rgba(120, 200, 255, 0.15);
+        }
+
+        .game-card.hidden {
+            display: none;
+        }
+
+        /* Header */
+        
+        .game-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .game-header h1 {
+            font-size: 36px;
+            font-weight: 600;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: #e0f2fe;
+            line-height: 1.2;
+        }
+
+        .game-header .sub {
+            color: #8aaec0;
+            font-size: 12px;
+            letter-spacing: 4px;
+            font-weight: 400;
+            margin-top: 6px;
+            text-transform: uppercase;
+        }
+
+        .game-header .credit {
+            color: #8aaec0;
+            font-size: 12px;
+            letter-spacing: 2px;
+            font-weight: 400;
+            margin-top: 8px;
+            text-transform: uppercase;
+            opacity: 0.85;
+        }
+
+        /* Score panel */
+
+        .score-panel {
+            display: flex; 
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 100px;
+            padding: 12px 24px 12px 24px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(120, 200, 255, 0.12);
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .score-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px;
+        }
+
+        .score-item .label {
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #8aaec0;
+        }
+
+        .score-item .value {
+            font-size: 30px;
+            font-weight: 700;
+            color: #e0f2fe;
+            min-width: 40px;
+            text-align: center;
+            line-height: 1;
+        }
+
+        .timer-warning .value {
+            color: #e0f2fe;
+            opacity: 0.55;
+        }
+
+        /* Box grid used for the reaction game's display as well as the Rock, Paper, Scissors Game (RPS) */
+
+        .box-grid {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0 30px;
+            flex-wrap: wrap;
+        }
+
+        .game-box {
+            background: rgba(255, 255, 255, 0.02);
+            border: 2px solid rgba(120, 200, 250, 0.18);
+            border-radius: 36px;
+            padding: 30px 20px 30px 20px;
+            width: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease;
+            color: #b0d4f0;
+        }
+
+        .game-box .box-emoji {
+            font-size: 40px;
+            line-height: 1;
+        }
+
+        .game-box .box-label {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 400;
+            color: #8aaec0;
+        }
+
+        .game-box:hover:not(.disabled) {
+            background: rgba(120, 200, 255, 0.1);
+            border-color: rgba(120, 200, 255, 0.4);
+        }
+
+        .game-box.active {
+            background: rgba(120, 200, 255, 0.12);
+            border-color: #7bc9ff;
+        }
+
+        .game-box.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Reaction game box colors */
+
+        .rx-red {
+            background: rgba(220, 60, 60, 0.15);
+            border-color: rgba(220, 60, 60, 0.5);
+        }
+
+        .rx-red:hover:not(.disabled) {
+            background: rgba(220, 60, 60, 0.25);
+            border-color: rgba(240, 80, 80, 0.8);
+        }
+
+        .rx-red.active {
+            background: rgba(220, 60, 60, 0.4);
+            border-color: #ff5050;
+        }
+
+        .rx-red .box-label {
+            color: #e08080;
+        }
+
+        .rx-yellow {
+            background: rgba(220, 190, 40, 0.15);
+            border-color: rgba(220, 190, 40, 0.5);
+        }
+
+        .rx-yellow:hover:not(.disabled) {
+            background: rgba(220, 190, 40, 0.25);
+            border-color: rgba(240, 210, 60, 0.8);
+        }
+
+        .rx-yellow.active {
+            background: rgba(220, 190, 40, 0.4);
+            border-color: #ffd740;
+        }
+
+        .rx-yellow .box-label {
+            color: #e0c880;
+        }
+        
+        .rx-green {
+            background: rgba(60, 200, 100, 0.15);
+            border-color: rgba(60, 200, 100, 0.5);
+        }
+
+        .rx-green:hover:not(.disabled) {
+            background: rgba(60, 200, 100, 0.25);
+            border-color: rgba(80, 220, 120, 0.8);
+        }
+
+        .rx-green.active {
+            background: rgba(60, 200, 100, 0.4);
+            border-color: #50e080;
+        }
+
+        .rx-green .box-label {
+            color: #80d8a0;
+        }
+
+        /* Display area for Computer vs. You -- RPS Game only */
+
+        .battle-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            margin: 20px 0 20px;
+            padding: 14px 18px 14px 18px;
+            flex-wrap: wrap;
+        }
+
+        .player-badge, .computer-badge {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            min-width: 130px;
+        }
+
+        .badge-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #8aaec0;
+            font-weight: 400;
+        }
+
+        .pick-display {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 30px;
+            padding: 10px 24px 10px 24px;
+            font-size: 40px;
+            line-height: 1.2;
+            border: 1px solid rgba(120, 200, 255, 0.18);
+            min-width: 110px;
+            text-align: center;
+            color: #e0f2fe;
+        }
+
+        .vs-divider {
+            font-size: 30px;
+            font-weight: 700;
+            color: #7bc9ff;
+            text-shadow: 0 0 24px #2f7fd0;
+            letter-spacing: 2px;
+            margin: 0 8px;
+        }
+
+        /* Display for the Reaction Game */
+
+        .reaction-display {
+            text-align: center;
+            padding: 18px 8px;
+            margin: 8px 0 12px;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #e0f2fe;
+            font-weight: 600;
+        }
+
+        .reaction-display .last-line {
+            font-size: 20px;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .reaction-display .last-line .time {
+            font-weight: 700;
+            font-size: 28px;
+            color: #7bc9ff;
+        }
+
+        .reaction-display .avg-line {
+            font-size: 14px;
+            letter-spacing: 2px;
+            color: #8aaec0;
+            margin-top: 4px;
+            font-weight: 400;
+        }
+
+        /* Result message */
+
+        .result-message {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 500;
+            padding: 12px 8px 12px 8px;
+            margin: 8px 0 8px 0;
+            letter-spacing: 2px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-transform: uppercase;
+            color: #e0f2fe;
+            border-radius: 30px;
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .result-message.win {
+            color: #c8f0c8;
+            background: rgba(80, 200, 100, 0.08);
+        }
+
+        .result-message.lose {
+            color: #f0c8c8;
+            background: rgba(200, 80, 80, 0.08);
+        }
+
+        .result-message.draw {
+            color: #f0e0b0;
+            background: rgba(200, 170, 60, 0.08);
+        }
+
+        .result-message.info {
+            color: #c8e0f0;
+            background: rgba(80, 160, 220, 0.08);
+        }
+
+        /* Controls */
+
+        .controls {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: transparent;
+            border: 2px solid rgba(120, 200, 255, 0.3);
+            color: #b0d4f0;
+            padding: 14px 32px 14px 32px;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border-radius: 48px;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: inherit;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: rgba(120, 200, 255, 0.1);
+            border-color: #7bc9ff;
+            color: #e0f2fe;
+        }
+
+        .btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        /* Key hint */
+
+        .key-hint {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 12px;
+            color: #557a94;
+            border-top: 1px solid rgba(120, 200, 255, 0.06);
+            padding-top: 16px;
+            letter-spacing: 1px;
+        }
+
+        .key-hint kbd {
+            background: rgba(120, 200, 255, 0.08);
+            padding: 2px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(120, 200, 255, 0.15);
+            font-size: 12px;
+            color: #8aaec0;
+        }
+
+        /* Grid for the Tic Tac Toe Game (ttt) */
+
+        .ttt-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            max-width: 420px;
+            margin: 20px auto 24px;
+            padding: 18px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 36px;
+            border: 1px solid rgba(120, 200, 255, 0.1);
+        }
+
+        .ttt-cell {
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.02);
+            border: 2px solid rgba(120, 200, 255, 0.15);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease;
+            color: #e0f2fe;
+        }
+
+        .ttt-cell:hover:not(.taken):not(.disabled) {
+            background: rgba(120, 200, 255, 0.06);
+            border-color: rgba(120, 200, 255, 0.35);
+        }
+
+        .ttt-cell.taken {
+            cursor: not-allowed;
+        }
+
+        .ttt-cell.disabled {
+            cursor: not-allowed;
+            opacity: 0.4;
+        }
+
+        .ttt-cell.x-mark {
+            color: #7bc9ff;
+            background: rgba(120, 200, 255, 0.06);
+        }
+
+        .ttt-cell.o-mark {
+            color: #b0d4f0;
+            background: rgba(120, 200, 255, 0.03);
+        }
+
+        .ttt-cell.win-highlight {
+            background: rgba(120, 200, 255, 0.15);
+            border-color: #7bc9ff;
+        }
+
+        /* Modal */
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: rgba(18, 30, 41, 0.98);
+            border-radius: 40px;
+            padding: 36px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid rgba(120, 200, 255, 0.15);
+        }
+
+        .modal h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #e0f2fe;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .modal .result-stats {
+            text-align: left;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 24px;
+            border: 1px solid rgba(120, 200, 255, 0.1);
+        }
+
+        .modal .result-stats div {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(120, 200, 255, 0.06);
+            font-size: 12px;
+        }
+
+        .modal .result-stats div:last-child {
+            border-bottom: none;
+        }
+
+        .modal .result-stats .label {
+            color: #8aaec0;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+
+        .modal .result-stats .value {
+            font-weight: 700;
+            color: #e0f2fe;
+        }
+
+        .modal .high-score-msg {
+            color: #7bc9ff;
+            font-size: 16px;
+            margin: 12px 0;
+            letter-spacing: 2px;
+        }
+
+        .modal .btn-close {
+            background: transparent;
+            border: 2px solid rgba(120, 200, 255, 0.3);
+            color: #b0d4f0;
+            padding: 12px 32px;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border-radius: 48px;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+            margin-top: 16px;
+            font-family: inherit;
+        }
+
+        .modal .btn-close:hover {
+            background: rgba(120, 200, 255, 0.1);
+            border-color: #7bc9ff;
+            color: #e0f2fe;
+        }
+
+        /* Responsive */
+
+        @media (max-width: 700px) {
+            .nav-btn {
+                font-size: 12px;
+                letter-spacing: 2px;
+                padding: 12px 5px;
+            }
+            .game-card {
+                padding: 28px 20px;
+                border-radius: 36px;
+            }
+            .game-header h1 {
+                font-size: 24px;
+                letter-spacing: 4px;
+            }
+            .score-panel {
+                padding: 10px 16px;
+            }
+            .score-item .label {
+                font-size: 12px;
+                letter-spacing: 2px;
+            }
+            .score-item .value {
+                font-size: 20px;
+                min-width: 30px;
+            }
+            .box-grid {
+                gap: 16px;
+            }
+            .game-box {
+                width: 110px;
+                padding: 20px 12px;
+            }
+            .game-box .box-emoji {
+                font-size: 26px;
+            }
+            .pick-display {
+                font-size: 32px;
+                padding: 6px 16px;
+                min-width: 85px;
+            }
+            .vs-divider {
+                font-size: 20px;
+            }
+            .result-message {
+                font-size: 16px;
+                min-height: 38px;
+            }
+            .btn {
+                padding: 12px 22px;
+                font-size: 12px;
+                letter-spacing: 2px;
+            }
+            .ttt-board {
+                gap: 10px;
+                padding: 14px;
+                max-width: 340px;
+            }
+            .ttt-cell {
+                font-size: 30px;
+                border-radius: 18px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-btn {
+                font-size: 10px;
+                letter-spacing: 0;
+                padding: 8px 4px;
+                gap: 4px;
+            }
+            .box-grid {
+                gap: 10px;
+            }
+            .game-box {
+                width: 85px;
+                padding: 14px 6px;
+                border-radius: 26px;
+            }
+            .game-box .box-emoji {
+                font-size: 26px;
+            }
+            .game-box .box-label {
+                font-size: 10px;
+                letter-spacing: 2px;
+            }
+            .score-item .value {
+                font-size: 18px;
+                min-width: 24px;
+            }
+            .ttt-board {
+                gap: 8px;
+                padding: 12px;
+                max-width: 280px;
+            }
+            .ttt-cell {
+                font-size: 28px;
+                border-radius: 16px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="app-shell">
+
+    <!--Navigation Tabs-->
+    <div class="nav-tabs" id="navTabs">
+        <button class="nav-btn active" data-game="rps">
+            <span>rock paper scissors</span>
+        </button>
+        <button class="nav-btn" data-game="reaction">
+            <span>reaction speed</span>
+        </button>
+        <button class="nav-btn" data-game="ttt">
+            <span>tic tac toe</span>
+        </button>
+    </div>
+
+    <!--Game 1: RPS-->
+    <div class="game-card" id="game-rps">
+       
+        <div class="game-header">
+            <h1>rock paper scissors</h1>
+            <div class="sub">choose rock, paper, or scissors to play</div>
+            <div class="credit">ZW</div>
+        </div>
+
+        <div class="score-panel">
+            <div class="score-item">
+                <span class="label">you</span>
+                <span class="value" id="rpsPlayerScore">0</span>
+            </div>
+            <div class="score-item">
+                <span class="label">computer</span>
+                <span class="value" id="rpsComputerScore">0</span>
+            </div>
+            <div class="score-item">
+                <span class="label">rounds</span>
+                <span class="value" id="rpsRounds">0</span>
+            </div>
+            <div class="score-item">
+                <span class="label">win rate</span>
+                <span class="value" id="rpsWinRate">0</span>
+            </div>
+        </div>
+
+        <div class="box-grid">
+            <div class="game-box" data-move="rock" id="rpsRock">
+                <span class="box-emoji">🪨</span>
+                <span class="box-label">rock</span>
+            </div>
+            <div class="game-box" data-move="paper" id="rpsPaper">
+                <span class="box-emoji">📄</span>
+                <span class="box-label">paper</span>
+            </div>
+            <div class="game-box" data-move="scissors" id="rpsScissors">
+                <span class="box-emoji">✂️</span>
+                <span class="box-label">scissors</span>
+            </div>
+        </div>
+
+        <div class="battle-area">
+            <div class="player-badge">
+                <div class="badge-title">your pick</div>
+                <div class="pick-display" id="rpsPlayerPick">—</div>
+            </div>
+            <div class="vs-divider">VS</div>
+            <div class="computer-badge">
+                <div class="badge-title">computer pick</div>
+                <div class="pick-display" id="rpsComputerPick">—</div>
+            </div>
+        </div>
+
+        <div class="result-message" id="rpsMessage">choose your move</div>
+
+        <div class="controls">
+            <button class="btn" id="rpsReset">new game</button>
+            <button class="btn" id="rpsStats">stats</button>
+        </div>
+
+        <div class="key-hint">
+            <kbd>1</kbd> rock &nbsp;·&nbsp; <kbd>2</kbd> paper &nbsp;·&nbsp; <kbd>3</kbd> scissors &nbsp;·&nbsp; <kbd>R</kbd> reset
+        </div>
+    </div>
+
+    <!--Game 2: Reaction Speed Test-->
+    <div class="game-card hidden" id="game-reaction">
+        <div class="game-header">
+            <h1>reaction speed</h1>
+            <div class="sub">click the lit box OR press space</div>
+            <div class="credit">ZW</div>
+        </div>
+
+        <div class="score-panel" id="reactionStats">
+            <div class="score-item">
+                <span class="label">score</span>
+                <span class="value" id="rxScore">0</span>
+            </div>
+            <div class="score-item">
+                <span class="label">best</span>
+                <span class="value" id="rxBest">0</span>
+            </div>
+            <div class="score-item">
+                <span class="label">miss</span>
+                <span class="value" id="rxMisses">0</span>
+            </div>
+            <div class="score-item" id="rxTimerContainer">
+                <span class="label">time</span>
+                <span class="value" id="rxTimer">60s</span>
+            </div>
+        </div>
+
+        <div class="box-grid" id="rxGrid">
+            <div class="game-box rx-red" data-index="0" id="rxBox0">
+                <span class="box-label">red</span>
+            </div>
+            <div class="game-box rx-yellow" data-index="1" id="rxBox1">
+                <span class="box-label">yellow</span>
+            </div>
+            <div class="game-box rx-green" data-index="2" id="rxBox2">
+                <span class="box-label">green</span>
+            </div>
+        </div>
+
+        <div class="reaction-display">
+            <div class="last-line">
+                <span>last:</span>
+                <span class="time" id="rxLast">--</span>
+            </div>
+            <div class="avg-line">
+                avg: <span id="rxAvg">--</span>
+            </div>
+        </div>
+
+        <div class="result-message" id="rxMessage">press start</div>
+
+        <div class="controls">
+            <button class="btn" id="rxStart">start</button>
+            <button class="btn" id="rxReset">reset</button>
+        </div>
+
+        <div class="key-hint">
+            <kbd>space</kbd> react &nbsp;·&nbsp; <kbd>esc</kbd> reset
+        </div>
+    </div>
+
+    <!--Game 3: Tic Tac Toe-->
+    <div class="game-card hidden" id="game-ttt">
+        
+        <div class="game-header">
+            <h1>tic tac toe</h1>
+            <div class="sub"> You are X · Computer is O</div>
+            <div class="credit">ZW</div>
+        </div>
+
+        <div class="score-panel">
+            <div class="score-item">
+                <span class="label">wins</span>
+                <span class="value" id="tttWins">0</span>
+            </div>
+            <div class="score-item">
+                <span class="label">losses</span>
+                <span class="value" id="tttLosses">0</span>
+            </div>
+            <div class="score-item">
+                <span class="label">draws</span>
+                <span class="value" id="tttDraws">0</span>
+            </div>
+            <div class="score-item">
+                <span class="label">streak</span>
+                <span class="value" id="tttStreak">0</span>
+            </div>
+        </div>
+
+        <div class="ttt-board" id="tttBoard">
+            <div class="ttt-cell" data-cell="0"></div>
+            <div class="ttt-cell" data-cell="1"></div>
+            <div class="ttt-cell" data-cell="2"></div>
+            <div class="ttt-cell" data-cell="3"></div>
+            <div class="ttt-cell" data-cell="4"></div>
+            <div class="ttt-cell" data-cell="5"></div>
+            <div class="ttt-cell" data-cell="6"></div>
+            <div class="ttt-cell" data-cell="7"></div>
+            <div class="ttt-cell" data-cell="8"></div>
+        </div>
+
+        <div class="result-message" id="tttMessage">your turn · pick a square</div>
+
+        <div class="controls">
+            <button class="btn" id="tttReset">new round</button>
+            <button class="btn" id="tttStats">stats</button>
+        </div>
+
+        <div class="key-hint">
+            <kbd>1-9</kbd> place mark &nbsp;·&nbsp; <kbd>R</kbd> reset
+        </div>
+    </div>
+</div>
+
+<!--Modal-->
+<div class="modal-overlay" id="modal">
+    <div class="modal">
+        <h2 id="modalTitle">stats</h2>
+        <div class="result-stats" id="modalStats"></div>
+        <div class="high-score-msg" id="modalHighlight" style="display: none;"></div>
+        <button class="btn-close" id="modalClose">close</button>
+    </div>
+</div>
+
+<script>
+
+    /* Game 1: RPS */
+    /* I used a class here instead of plain functions so 
+    that all the game states live in the same place and don't
+    leak out */
+    class RPSGame {
+        constructor() {
+
+            /* Broken down seperately because stats modal shows them individually */
+
+            this.playerScore = 0;
+            this.computerScore = 0;
+            this.rounds = 0;
+            this.wins = 0;
+            this.losses = 0;
+            this.draws = 0;
+            this.currentStreak = 0;
+            this.longestStreak = 0;
+            this.bestWinRate = this.loadBestWinRate ();
+            this.lastClick = 0;
+            this.DEBOUNCE = 150;
+
+            this.emoji = { rock: '🪨', paper: '📄', scissors: '✂️' };
+
+            /* Caching DOM lookups once instead of quering on every round */
+
+            this.el = {
+                playerScore: document.getElementById('rpsPlayerScore'),
+                computerScore: document.getElementById('rpsComputerScore'),
+                rounds: document.getElementById('rpsRounds'),
+                winRate: document.getElementById('rpsWinRate'),
+                playerPick: document.getElementById('rpsPlayerPick'),
+                computerPick: document.getElementById('rpsComputerPick'),
+                message: document.getElementById('rpsMessage'),
+                rock: document.getElementById('rpsRock'),
+                paper: document.getElementById('rpsPaper'),
+                scissors: document.getElementById('rpsScissors'),
+                reset: document.getElementById('rpsReset'),
+                stats: document.getElementById('rpsStats')
+            };
+
+            this.el.rock.addEventListener('click', () => this.play('rock'));
+            this.el.paper.addEventListener('click', () => this.play('paper'));
+            this.el.scissors.addEventListener('click', () => this.play('scissors'));
+            this.el.reset.addEventListener('click', () => this.reset());
+            this.el.stats.addEventListener('click', () => this.showStats());
+        }
+
+        loadBestWinRate () {
+            try {
+                const v = localStorage.getItem('rpsBestWinRate');
+                return v ? parseFloat(v) : 0;
+            } catch {return 0; }
+        }
+
+        saveBestWinRate(rate) {
+            try { localStorage.setItem('rpsBestWinRate', String(rate)); } catch {}
+        }
+
+        cpuMove() {
+            const moves = ['rock', 'paper', 'scissors'];
+            return moves[Math.floor(Math.random() * 3)];
+        }
+
+        evaluate(p, c) {
+            if (p === c) return 'draw';
+            if ((p === 'rock' && c === 'scissors') ||
+                (p === 'paper' && c === 'rock') ||
+                (p === "scissors" && c === 'paper')) return 'win';
+            return 'lose';
+        }
+
+        play(move) {
+            const now = Date.now();
+            if (now - this.lastClick < this.DEBOUNCE)  return;
+            this.lastClick = now;
+
+            /* Disable all three boxes for a beat so the player can't spam */
+            [this.el.rock, this.el.paper, this.el.scissors].forEach(b => b.classList.add('disabled'));
+            [this.el.rock, this.el.paper, this.el.scissors].forEach(b => b.classList.remove('active'));
+
+            /* Briefly highlight the chosen box */
+            const selected = document.querySelector(`#game-rps .game-box[data-move="${move}"]`);
+            if (selected) selected.classList.add('active');
+
+            const cpu = this.cpuMove();
+            this.el.playerPick.textContent = this.emoji[move];
+            this.el.computerPick.textContent = this.emoji[cpu];
+
+            const result = this.evaluate(move, cpu);
+            this.rounds++;
+
+            if (result === 'win') {
+                this.playerScore++;
+                this.wins++;
+                this.currentStreak++;
+                if (this.currentStreak > this.longestStreak) this.longestStreak = this.currentStreak;
+                this.setMessage('you win', 'win');
+            } else if (result === 'lose') {
+                this.computerScore++;
+                this.losses++;
+                this.currentStreak = 0;
+                this.setMessage('computer wins', 'lose');
+            } else {
+                this.draws++;
+                this.currentStreak = 0;
+                this.setMessage('draw', 'draw')
+            }
+
+            this.updateUI();
+            
+            const rate = this.rounds > 0 ? (this.wins / this.rounds) * 100 : 0;
+            if (rate > this.bestWinRate && this.rounds >= 5) {
+                this.bestWinRate = rate;
+                this.saveBestWinRate(rate);
+            }
+
+            setTimeout(() => {
+                [this.el.rock, this.el.paper, this.el.scissors].forEach(b => b.classList.remove('disabled'));
+                setTimeout (() => {
+                    [this.el.rock, this.el.paper, this.el.scissors].forEach(b => b.classList.remove('active'));
+                }, 400);
+            }, 600);
+        }
+
+        setMessage(text, type) {
+            this.el.message.textContent = text;
+            this.el.message.className = 'result-message';
+            if (type) this.el.message.classList.add(type);
+        }
+
+        updateUI() {
+            this.el.playerScore.textContent = this.playerScore;
+            this.el.computerScore.textContent = this.computerScore;
+            this.el.rounds.textContent = this.rounds;
+            const rate = this.rounds > 0 ? Math.round((this.wins / this.rounds) *100) : 0;
+            this.el.winRate.textContent = rate + '%';
+        }
+
+        reset() {
+            this.playerScore = 0;
+            this.computerScore = 0;
+            this.rounds = 0;
+            this.wins = 0;
+            this.losses = 0;
+            this.draws = 0;
+            this.currentStreak = 0;
+            this.longestStreak = 0;
+
+            this.el.playerPick.textContent = '—';
+            this.el.computerPick.textContent = '—';
+            this.setMessage('choose your move', null);
+            this.updateUI();
+
+            [this.el.rock, this.el.paper, this.el.scissors].forEach(b => {
+                b.classList.remove('active', 'disabled');
+        });
+        }
+
+        showStats() {
+            const rate = this.rounds > 0 ? Math.round((this.wins / this.rounds) * 100) : 0;
+            openModal('rock paper scissors', [
+                ['your score', this.playerScore],
+                ['computer score', this.computerScore],
+                ['total rounds', this.rounds],
+                ['wins', this.wins],
+                ['losses', this.losses],
+                ['draws', this.draws],
+                ['win rate', rate + '%'],
+                ['longest win streak', this.longestStreak]
+            ], rate >= this.bestWinRate && this.rounds >= 5 ? 'best win rate' : null);
+        }
+    }
+
+    /* Game 2: Reaction speed */
+    /* Bit tricky because there is a timeout if you don't fire in time */
+    class ReactionGame {
+        constructor() {
+            this.score = 0;
+            this.misses = 0;
+            this.reactions = [];
+            this.isRunning = false;
+            this.startTime = 0;
+            this.duration = 60;
+            this.activeBox = null;
+            this.boxLitTime = 0;
+            this.boxTimeout = null;
+            this.timerInterval = null;
+            this.best = this.loadBest();
+
+            this.el = {
+                score: document.getElementById('rxScore'),
+                best: document.getElementById('rxBest'),
+                misses: document.getElementById('rxMisses'),
+                timer: document.getElementById('rxTimer'),
+                timerContainer: document.getElementById('rxTimerContainer'),
+                last: document.getElementById('rxLast'),
+                avg: document.getElementById('rxAvg'),
+                message: document.getElementById('rxMessage'),
+                start: document.getElementById('rxStart'),
+                reset: document.getElementById('rxReset'),
+                boxes: [
+                    document.getElementById('rxBox0'),
+                    document.getElementById('rxBox1'),
+                    document.getElementById('rxBox2')
+                ]
+            };
+
+            this.el.best.textContent = this.best;
+            this.el.boxes.forEach((box, i) => {
+                box.addEventListener('click', () => this.handleBoxClick(i));
+            });
+            this.el.start.addEventListener('click', () => this.start());
+            this.el.reset.addEventListener('click', () => this.reset());
+        }
+
+        updateUI() {
+            this.el.score.textContent = this.score;
+            this.el.misses.textContent = this.misses;
+
+            if (this.score > this.best) {
+                this.best = this.score;
+                this.el.best.textContent = this.best;
+                this.saveBest(this.best);
+            }
+        }
+
+        loadBest() {
+            try {
+                const v = localStorage.getItem('rxBest');
+                return v ? parseInt(v) :0;
+            } catch { return 0; }
+        }
+
+        saveBest(score) {
+            try { localStorage.setItem('rxBest', String(score)); } catch {}
+        }
+
+        start() {
+            if(this.isRunning) return;
+
+            this.score = 0;
+            this.misses = 0;
+            this.reactions = [];
+            this.startTime = Date.now();
+            this.isRunning = true;
+
+            this.el.start.disabled = true;
+            this.el.start.textContent = 'running';
+            this.setMessage('get ready', 'info');
+            this.el.timerContainer.classList.remove('timer-warning');
+
+            this.el.boxes.forEach(b => b.classList.remove('disabled'));
+            this.updateUI();
+            this.el.last.textContent = '--';
+            this.el.avg.textContent = '--';
+
+            /* updateTimer runs every 100ms, so the coutdown is fast but doesn't tax the browser */
+            this.timerInterval = setInterval(() => this.updateTimer(), 100);
+            setTimeout(() => this.activateRandom(), 500);
+        }
+
+        reset() {
+            this.isRunning = false;
+            if (this.boxTimeout) { clearTimeout(this.boxTimeout); this.boxTimeout = null; }
+            if (this.timerInterval) { clearInterval(this.timerInterval); this.timerInterval = null; }
+
+            this.activeBox = null;
+            this.el.boxes.forEach(b => b.classList.remove('active'));
+
+            this.score = 0;
+            this.misses = 0;
+            this.reactions = [];
+            this.el.start.disabled = false;
+            this.el.start.textContent = 'start';
+            this.el.timer.textContent = '60s';
+            this.el.timerContainer.classList.remove('timer-warning');
+            this.el.last.textContent = '--';
+            this.el.avg.textContent = '--';
+            this.setMessage('press start', null);
+            this.el.boxes.forEach(b => b.classList.remove('disabled'));
+            this.updateUI();
+        }
+
+        activateRandom() {
+            if (!this.isRunning) return;
+
+            this.el.boxes.forEach(b => b.classList.remove('active'));
+            const idx = Math.floor(Math.random() *3);
+            this.activeBox = idx;
+            this.el.boxes[idx].classList.add('active');
+            this.boxLitTime = Date.now();
+
+            const dur = 600 + Math.random() * 1900;
+            if (this.boxTimeout) clearTimeout(this.boxTimeout);
+            this.boxTimeout = setTimeout(() => {
+                if (this.isRunning && this.activeBox !== null) this.handleMiss();
+            }, dur);
+        }
+
+        handleBoxClick (idx){
+            if (!this.isRunning) return;
+            if (idx === this.activeBox) this.handleHit();
+            else if (this.activeBox !== null) this.handleMiss();
+        }
+
+        handleHit() {
+            const rt = (Date.now() - this.boxLitTime) / 1000;
+            this.score++;
+            this.reactions.push(rt);
+            this.el.last.textContent = rt.toFixed(3) + 's';
+            const avg = this.reactions.reduce((a, b) => a + b, 0) / this.reactions.length;
+            this.el.avg.textContent = avg.toFixed(3) + 's';
+            
+            let msg, type;
+            if (rt < 0.3) { msg = 'insane ' + rt.toFixed(3) + 's'; type = 'win'; }
+            else if (rt < 0.5) { msg = 'fast ' + rt.toFixed(3) + 's'; type = 'win'; }
+            else if (rt < 0.8) { msg = 'good ' + rt.toFixed(3) + 's'; type = 'win'; }
+            else if (rt < 1.2) { msg = 'ok ' + rt.toFixed(3) + 's'; type = 'info'; }
+            else { msg = 'slow ' + rt.toFixed(3) + 's'; type = 'lose'; }
+            this.setMessage(msg, type);
+
+            if (this.activeBox !== null) this.el.boxes[this.activeBox].classList.remove('active');
+            this.activeBox = null;
+            if (this.boxTimeout) { clearTimeout(this.boxTimeout); this.boxTimeout = null; }
+
+            this.updateUI();
+            setTimeout(() => this.activateRandom(), 250);
+         }
+
+         handleMiss() {
+            this.misses++;
+            this.setMessage('too slow', 'lose');
+            if (this.activeBox !== null) this.el.boxes[this.activeBox].classList.remove('active');
+            this.activeBox = null;
+            if (this.boxTimeout) { clearTimeout(this.boxTimeout); this.boxTimeout = null; }
+            this.updateUI();
+            setTimeout(() => this.activateRandom(), 400);
+         }
+
+         updateTimer() {
+            const elapsed = (Date.now() - this.startTime) / 1000;
+            const remaining = Math.max(0, this.duration - elapsed);
+            this.el.timer.textContent = Math.ceil(remaining) + 's';
+
+            /* Turn the timer red-ish when there are 10 seconds left */
+            if (remaining <= 10) this.el.timerContainer.classList.add('timer-warning');
+            else this.el.timerContainer.classList.remove('timer-warning');
+
+            if (remaining <= 0) this.end();
+         }
+
+         end () {
+            this.isRunning = false;
+            if (this.boxTimeout) { clearTimeout(this.boxTimeout); this.boxTimeout = null; }
+            if (this.timerInterval) { clearInterval(this.timerInterval); this.timerInterval = null; }
+
+            this.el.boxes.forEach(b => b.classList.remove('active'));
+            this.activeBox = null;
+
+            this.el.start.disabled = false;
+            this.el.start.textContent = 'start';
+            this.el.timerContainer.classList.remove('timer-warning');
+            this.setMessage('game over', null);
+
+            const avg = this.reactions.length > 0
+                ? this.reactions.reduce((a, b) => a + b, 0) / this.reactions.length : 0;
+            const bonus = avg > 0 ? Math.floor(1000 / avg) : 0;
+            const final = this.score + bonus;
+
+            const isBest = final > this.best;
+            if (isBest) {
+                this.best = final;
+                this.el.best.textContent = this.best;
+                this.saveBest(this.best);
+            }
+
+            openModal('reaction results', [
+                ['score', this.score],
+                ['bonus', bonus],
+                ['final score', final],
+                ['reactions', this.reactions.length],
+                ['misses', this.misses],
+                ['avg speed', avg > 0 ? avg.toFixed(3) + 's' : '--']
+            ], isBest ? 'new high score' : null);
+         }
+
+         setMessage(text, type) {
+            this.el.message.textContent = text;
+            this.el.message.className = 'result-message';
+            if (type) this.el.message.classList.add(type);
+         }
+    }
+
+    /* Game 3: Tic Tac Toe */
+    /* In order to make the computer competent, but not unbeatable, it has 
+    to the following three things in order:
+    1. Can I win right now?
+    2. Do I need to block?
+    3. Take the center or a corner */
+
+    class TicTacToeGame {
+        constructor() {
+            this.board = Array(9).fill(null);
+            this.playerTurn = true;
+            this.gameOver = false;
+            this.wins = 0;
+            this.losses = 0;
+            this.draws = 0;
+            this.currentStreak = 0;
+            this.longestStreak = 0;
+            this.moveCount = 0;
+
+            this.el = {
+                cells: document.querySelectorAll('#tttBoard .ttt-cell'),
+                message: document.getElementById('tttMessage'),
+                wins: document.getElementById('tttWins'),
+                losses: document.getElementById('tttLosses'),
+                draws: document.getElementById('tttDraws'),
+                streak: document.getElementById('tttStreak'),
+                reset: document.getElementById('tttReset'),
+                stats: document.getElementById('tttStats')
+            };
+
+            this.el.cells.forEach(cell => {
+                cell.addEventListener('click', () => this.handleClick(parseInt(cell.dataset.cell)));
+            });
+            this.el.reset.addEventListener('click', () => this.reset());
+            this.el.stats.addEventListener('click', () => this.showStats());
+
+            this.updateUI();
+        }
+
+        handleClick(idx) {
+            if (this.gameOver || !this.playerTurn || this.board[idx] !== null) return;
+
+            this.board[idx] = "X";
+            this.moveCount++;
+            this.render();
+
+            if (this.checkEnd()) return;
+
+            this.playerTurn = false;
+            this.el.message.textContent = "computer thinking";
+            this.el.message.className = 'result-message info';
+            this.el.cells.forEach(c => c.classList.add('disabled'));
+
+            setTimeout(() => this.cpuMove(), 450);
+        }
+
+        cpuMove() {
+            if (this.gameOver) return;
+
+            const empty = this.board.map((v, i) => v === null ? i : null).filter(v => v !== null);
+            if (empty.length === 0) return;
+
+            /* - Win if possible - Block the player */
+            let move = this.findBestMove('O');
+            if (move === null) move = this.findBestMove('X');
+            /* - Take the center */
+            if (move === null && this.board[4] === null) move = 4;
+            /* - Take any free corner */
+            if (move === null) {
+                const corners = [0, 2, 6, 8].filter(i => this.board[i] === null);
+                if (corners.length) move = corners[Math.floor(Math.random() * corners.length)];
+            }
+            /* Fallback: any empty cell */
+            if (move === null) move = empty[Math.floor(Math.random() * empty.length)];
+
+            this.board[move] = 'O';
+            this.moveCount++;
+            this.render();
+
+            if (this.checkEnd()) return;
+
+            this.playerTurn = true;
+            this.el.message.textContent = 'your turn';
+            this.el.message.className = 'result-message';
+            this.el.cells.forEach(c => {
+                if (c.textContent === '') c.classList.remove('disabled');
+            });
+        }
+
+        findBestMove(symbol) {
+            const lines = [
+                [0,1,2],[3,4,5],[6,7,8],
+                [0,3,6], [1,4,7], [2,5,8],
+                [0,4,8],[2,4,6]
+            ];
+            for (const line of lines) {
+                const vals = line.map(i => this.board[i]);
+                const symbolCount = vals.filter(v => v === symbol).length;
+                const emptyCount = vals.filter(v => v === null).length;
+                if (symbolCount === 2 && emptyCount === 1) {
+                    return line[vals.indexOf(null)];
+                }
+            }
+            return null;
+        }
+
+        checkEnd() {
+            const lines = [
+                [0,1,2],[3,4,5],[6,7,8],
+                [0,3,6],[1,4,7],[2,5,8],
+                [0,4,8],[2,4,6]
+            ];
+
+            for (const line of lines) {
+                const [a, b, c] = line;
+                if (this.board[a] && this.board[a] === this.board[b] && this.board[a] === this.board[c]) {
+                    this.gameOver = true;
+                    this.highlightWin(line);
+                    const winner = this.board[a];
+                    if (winner === "X") {
+                        this.wins++;
+                        this.currentStreak++;
+                        if (this.currentStreak > this.longestStreak) this.longestStreak = this.currentStreak;
+                        this.el.message.textContent = "you win";
+                        this.el.message.className = 'result-message win';
+                    } else {
+                        this.losses++;
+                        this.currentStreak = 0;
+                        this.el.message.textContent = 'computer wins';
+                        this.el.message.className = 'result-message lose';
+                    }
+                    this.updateUI();
+                    return true;
+                }
+            }
+
+            if (this.moveCount === 9) {
+                this.gameOver = true;
+                this.draws++;
+                this.currentStreak = 0;
+                this.el.message.textContent = 'draw';
+                this.el.message.className = 'result-message draw';
+                this.updateUI();
+                return true;
+            }
+            return false;
+        }
+
+        highlightWin(line) {
+            line.forEach(i => {
+                this.el.cells[i].classList.add('win-highlight');
+            });
+        }
+
+        render() {
+            this.board.forEach((val, i) => {
+                const cell = this.el.cells[i];
+                cell.textContent = val || '';
+                cell.classList.toggle('taken', val !== null);
+                cell.classList.toggle('x-mark', val === 'X');
+                cell.classList.toggle('o-mark', val === 'O');
+                if (val !== null) cell.classList.add('disabled');
+                else cell.classList.remove('disabled');
+            });
+        }
+
+        updateUI() {
+            this.el.wins.textContent = this.wins;
+            this.el.losses.textContent = this.losses;
+            this.el.draws.textContent = this.draws;
+            this.el.streak.textContent = this.currentStreak;
+        }
+
+        reset() {
+            this.board = Array(9).fill(null);
+            this.playerTurn = true;
+            this.gameOver = false;
+            this.moveCount = 0;
+
+            this.el.cells.forEach(c => {
+                c.textContent = '';
+                c.className = 'ttt-cell';
+            });
+
+            this.el.message.textContent = 'your turn';
+            this.el.message.className = 'result-message';
+        }
+
+        showStats() {
+            const total = this.wins + this.losses + this.draws;
+            const rate = total > 0 ? Math.round((this.wins / total) * 100)  : 0;
+            openModal('tic tac toe stats', [
+                ['wins', this.wins],
+                ['losses', this.losses],
+                ['draws', this.draws],
+                ['total games', total],
+                ['win rate', rate + '%'],
+                ['longest win streak', this.longestStreak]
+            ], rate >= 70 && total >= 5 ? 'great win rate' : null);
+        }
+    }
+
+    /* All three mini games are supported by the same shared modal */
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalStats = document.getElementById('modalStats');
+    const modalHighlight = document.getElementById('modalHighlight');
+
+    function openModal(title, stats, highlight) {
+        modalTitle.textContent = title;
+        modalStats.innerHTML = stats.map(([label, value]) => 
+            `<div><span class="label">${label}</span><span class="value">${value}</span></div>`
+        ).join('');
+
+        if (highlight) {
+            modalHighlight.textContent = highlight;
+            modalHighlight.style.display = 'block';
+        } else {
+            modalHighlight.style.display = 'none';
+        }
+
+        modal.classList.add('show');
+    }
+
+    document.getElementById('modalClose').addEventListener('click', () => {
+        modal.classList.remove('show');
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.remove('show');
+    });
+
+    /* Function to switch games / Tab switching */
+    const navBtns = document.querySelectorAll('.nav-btn');
+    const gameCards = {
+        rps: document.getElementById('game-rps'),
+        reaction: document.getElementById('game-reaction'),
+        ttt: document.getElementById('game-ttt')
+    };
+
+    navBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const game = btn.dataset.game;
+
+            navBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            Object.values(gameCards).forEach(c => c.classList.add('hidden'));
+            gameCards[game].classList.remove('hidden');
+        });
+    });
+
+    /* Keyboard shortcuts */
+    document.addEventListener('keydown', (e) => {
+        if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+        const key = e.key;
+
+        if (key >= '1' && key <= '9' && !gameCards.ttt.classList.contains('hidden')) {
+            e.preventDefault();
+            const idx = parseInt(key) - 1;
+            ttt.handleClick(idx);
+            return;
+        }
+
+        if (!gameCards.rps.classList.contains('hidden')) {
+            if (key === '1') { e.preventDefault(); rps.play('rock'); }
+            else if (key === '2') { e.preventDefault(); rps.play('paper'); }
+            else if (key === '3') { e.preventDefault(); rps.play('scissors'); }
+        }
+
+        if (key === ' ' || key === 'Spacebar') {
+            if (!gameCards.reaction.classList.contains('hidden')) {
+                e.preventDefault();
+                if (!reaction.isRunning) reaction.start();
+                else if (reaction.activeBox !== null) reaction.handleHit();
+            }
+        }
+
+        if (key === 'Escape' && !gameCards.reaction.classList.contains('hidden')) {
+            reaction.reset();
+        }
+    });
+
+    /* Bootstrapping */
+    /* I wait for the DOMContentLoaded before instantiating the games
+    because the classes grab elements by id in their constrcutors */
+
+    let rps, reaction, ttt;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        rps = new RPSGame();
+        reaction = new ReactionGame();
+        ttt = new TicTacToeGame();
+    });
+
+</script>
+
+</body>
+</html>
